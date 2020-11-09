@@ -1,0 +1,43 @@
+#dung elgg bang php:7.4-apache2
+FROM php:7.4-apache
+# cai dat cac goi cho apche2 
+RUN apt update -y 
+RUN apt install vim -y  
+RUN apt install wget -y  
+RUN apt install zip -y  
+RUN apt install unzip -y 
+RUN apt install cron -y
+RUN apt-get update && apt-get install -y mariadb-client
+RUN apt-get update && apt-get install -y \
+         libfreetype6-dev \
+         libjpeg62-turbo-dev \
+         libpng-dev \
+     && docker-php-ext-configure gd --with-freetype --with-jpeg \
+     && docker-php-ext-install -j$(nproc) gd \
+     && docker-php-ext-configure pdo_mysql  \
+&& docker-php-ext-install -j$(nproc) pdo_mysql 
+#add file
+ADD ./* /home/
+#dowload source and set up elgg 
+RUN wget https://elgg.org/download/elgg-3.3.11.zip \
+	&& unzip elgg-3.3.11.zip \
+	&& mv ./elgg-3.3.11/* . \
+	&& rm -r elgg-3.3.11  \ 
+	&& rm elgg-3.3.11.zip \
+	&& mkdir -p /var/www/data \
+	&& chmod -R 755 /var/www/html \
+	 && chmod -R 755 /var/www/data \
+	&& chown -R www-data:www-data /var/www/html \
+	&& chown -R www-data:www-data /var/www/data \
+	&& a2enmod rewrite \
+	&& mv /home/elgg.conf /etc/apache2/sites-available/elgg.conf \
+	&& a2ensite elgg.conf 
+#setup thu muc lam viec 
+WORKDIR /var/www/html 
+#add file bash scipt 
+ENTRYPOINT ["/bin/bash"] 
+CMD ["/home/script.sh"]
+#lang nghe port 80 
+EXPOSE 80 
+
+
